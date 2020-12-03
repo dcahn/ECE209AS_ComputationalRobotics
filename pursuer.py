@@ -10,13 +10,15 @@ class Pursuer:
     # decode action
     def move(self, a):
         if a == 1:
-            return -1, 0
+            return -1, 0    # left
         elif a == 2:
-            return 1, 0
+            return 1, 0     # right
         elif a == 3:
-            return 0, -1
+            return 0, -1    # down
         elif a == 4:
-            return 0, 1
+            return 0, 1     # up
+            
+        return 0, 0         # invalid action
 
     # action
     def action(self, a):
@@ -29,6 +31,10 @@ class Pursuer:
     def policy(self):
         return random.randint(1,4)
     
+    # return postion of the pursuer
+    def getPos(self):
+        return self.x, self.y
+
     # print current position
     def print(self):
         print(self.x, self.y)
@@ -42,7 +48,7 @@ class Pursuer:
 
 
 if __name__ == "__main__":
-    
+
     # initial empty map with standard ghost house
     map = Map(31,16,"""
 		||||||||||||||||
