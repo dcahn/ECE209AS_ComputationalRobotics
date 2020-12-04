@@ -261,6 +261,13 @@ class Map:
 
         return True
 
+    def clearmap(self, x, y):
+        self.tiles[x+y*self.w] = '.'
+
+    def setmap(self, x, y, c):
+        self.tiles[x+y*self.w] = c
+
+
 if __name__ == "__main__":
 
     # initial empty map with standard ghost house

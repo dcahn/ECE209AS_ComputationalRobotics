@@ -1,6 +1,6 @@
 from map import Map
 #from evader import Evader
-#from pursuer import Pursuer
+from pursuer import Pursuer
 import os
 import time
 
@@ -45,13 +45,27 @@ class Game():
 		self.board = self.map.makeBoard()
 
 		#self.evader = Evader()
-		#self.pursers = [Pursuer()] * npursuers
+		self.pursers = [Pursuer(1, 3, self.map)] * npursuers
 
 	def step(self):
 		# Call evader policy
 		# Take evader action
-		# Call pursuer policy
-		# Take pursuer action
+
+		for purser in self.pursers:
+			# remove prev position
+			x, y = purser.getPos()
+			self.map.clearmap(x, y)
+
+			# Call pursuer policy
+			a = purser.policy()
+
+			# Take pursuer action
+			purser.action(a)
+
+			#set new position
+			x, y = purser.getPos()
+			self.map.setmap(x, y, 'p')
+		
 		# Update board
 		pass
 
@@ -61,11 +75,11 @@ class Game():
 	def done(self):
         # if evader is caught:
         #   return True
-        for i in range(len(self.board)):
-            for j in range(len(self.board[0])):
-                if board[i][j] == '.':
-                    return False
-        return True
+		for i in range(len(self.board)):
+			for j in range(len(self.board[0])):
+				if self.board[i][j] == '.':
+					return False
+		return True
 
 
 if __name__ == "__main__":
