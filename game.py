@@ -45,29 +45,35 @@ class Game():
 		self.board = self.map.makeBoard()
 
 		#self.evader = Evader()
-		self.pursers = [Pursuer(1, 3, self.map)] * npursuers
+		self.pursers = [Pursuer(1, i+1, self.board) for i in range(npursuers)]
 
 	def step(self):
 		# Call evader policy
 		# Take evader action
 
 		for purser in self.pursers:
-			# remove prev position
-			x, y = purser.getPos()
-			self.map.clearmap(x, y)
-
 			# Call pursuer policy
 			a = purser.policy()
-
 			# Take pursuer action
 			purser.action(a)
 
-			#set new position
-			x, y = purser.getPos()
-			self.map.setmap(x, y, 'p')
-		
 		# Update board
+		self.clearBoard()
+		self.updateBoard()
 		pass
+	
+	# Update board using pursuer and evader position
+	def updateBoard(self):
+		for purser in self.pursers:
+			x, y = purser.getPos()
+			self.board[x][y] = 'p'
+	
+	# Remove previous pursuer and evader in board
+	def clearBoard(self):
+		for x in range(len(self.board)):
+			for y in range(len(self.board[x])):
+				if self.board[x][y] == 'p' or self.board[x][y] == 'c':
+					self.board[x][y] = '.'
 
 	def print(self):
 		print(self.map)
