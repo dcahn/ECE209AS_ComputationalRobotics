@@ -17,5 +17,4 @@ if __name__ == "__main__":
 	while not game.done():
 		game.step()
 		game.print()
-		time.sleep(2)
-		os.system('cls' if os.name == 'nt' else 'clear')
+		time.sleep(0.1)
