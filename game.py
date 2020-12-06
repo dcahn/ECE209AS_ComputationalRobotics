@@ -46,8 +46,9 @@ class Game():
 		self.board = map.makeBoard()
 		self.board_str = ""
 
-		self.evader = Evader(random.randint(0, nrows-1), random.randint(0, ncols-1), self.board)
-		self.pursers = [Pursuer(random.randint(0, nrows-1), random.randint(0, ncols-1), self.board) for i in range(npursuers)]
+		self.evader = Evader(random.randint(1, nrows-1), random.randint(1, ncols-1), self.board)
+
+		self.pursers = [Pursuer(random.randint(1, nrows-1), random.randint(1, ncols-1), self.board) for i in range(npursuers)]
 		self.updateBoard()
 
 	def board_to_string(self):
@@ -69,7 +70,7 @@ class Game():
 
 		for purser in self.pursers:
 			# Call pursuer policy
-			a = purser.policy()
+			a = purser.Policy(self.board)
 			# Take pursuer action
 			purser.action(a)
 
@@ -80,11 +81,13 @@ class Game():
 	
 	# Update board using pursuer and evader position
 	def updateBoard(self):
-		x, y = self.evader.getPos()
-		self.board[x][y] = 'e'
 		for purser in self.pursers:
 			x, y = purser.getPos()
 			self.board[x][y] = 'p'
+		
+		x, y = self.evader.getPos()
+		self.board[x][y] = 'e'
+
 		self.board_to_string()
 	
 	# Remove previous pursuer and evader in board
@@ -93,21 +96,22 @@ class Game():
 			for y in range(len(self.board[x])):
 				if self.board[x][y] == 'p':
 					self.board[x][y] = '.'
-				if self.board[x][y] == 'e':
-					self.board[x][y] = '.'
+				elif self.board[x][y] == 'e':
+					self.board[x][y] = ' '
+
 
 	def print(self):
 		print(self.board_str)
 
 	def done(self):
-		for purser in self.pursers:
-			if self.evader.getPos() == purser.getPos():
-				return True
-		# for i in range(len(self.board)):
-		# 	for j in range(len(self.board[0])):
-		# 		if self.board[i][j] == '.':
-		# 			return False
-		return False
+		#for purser in self.pursers:
+		#	if self.evader.getPos() == purser.getPos():
+		#		return True
+		for i in range(len(self.board)):
+			for j in range(len(self.board[0])):
+				if self.board[i][j] == '.':
+					return False
+		return True
 
 
 if __name__ == "__main__":
