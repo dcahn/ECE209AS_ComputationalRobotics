@@ -1,9 +1,35 @@
 import math
+from queue import Queue
 
+# Spatial distance between two positions
 def distance(pos1, pos2):
     x1, y1 = pos1
     x2, y2 = pos2
     return math.sqrt((x1 - x2) ** 2 + (y1 - y2) ** 2)
+
+# Shortest path distance (BFS) between two positions on the board
+def board_distance(pos1, pos2, board):
+    bfs_queue = Queue()
+    seen_set = set()
+    bfs_queue.put((pos1, 0))
+    seen_set.add(pos1)
+
+    actions = [(-1, 0), (1, 0), (0, -1), (0, 1)]
+    while not bfs_queue.empty():
+        curr_pos, dist = bfs_queue.get()
+        if curr_pos == pos2:
+            return dist
+        for action in actions:
+            dx, dy = action
+            x, y = curr_pos
+            # Note that here, we assume that pursuers can move to any 
+            # non-obstacle space (i.e. that multiple pursuers can be at 
+            # the same location)
+            next_pos = (x + dx, y + dy)
+            if next_pos not in seen_set and (board[x + dx][y + dy] != '|'):
+                bfs_queue.put((next_pos, dist + 1))
+                seen_set.add(next_pos)
+    return None    
 
 class Evader:
     def __init__(self, x, y, board):
@@ -54,7 +80,8 @@ class Evader:
             min_pursuer_distance = None
             # Compute distance to closest pursuer after taking the action
             for pursuer_position in pursuer_positions:
-                dist_pursuer = distance(pursuer_position, (x, y))
+                # dist_pursuer = distance(pursuer_position, (x, y))
+                dist_pursuer = board_distance(pursuer_position, (x, y), self.board)
                 if min_pursuer_distance is None or dist_pursuer < min_pursuer_distance:
                     min_pursuer_distance = dist_pursuer
             # Update maximum distance to closest pursuer and corresponding action
