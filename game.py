@@ -1,6 +1,7 @@
 from map import Map
 from evader import Evader
 from pursuer import Pursuer
+from pursuer_shortest_path import ShortestPathPursuer
 import os
 import time
 import random
@@ -47,8 +48,9 @@ class Game():
 		self.board_str = ""
 
 		self.evader = Evader(random.randint(1, nrows-1), random.randint(1, ncols-1), self.board)
-
-		self.pursers = [Pursuer(random.randint(1, nrows-1), random.randint(1, ncols-1), self.board) for i in range(npursuers)]
+        
+		self.pursers = [ShortestPathPursuer(random.randint(1, nrows-1), random.randint(1, ncols-1), self.board) for i in range(npursuers)]
+		# self.pursers = [Pursuer(random.randint(1, nrows-1), random.randint(1, ncols-1), self.board) for i in range(npursuers)]
 		self.updateBoard()
 
 	def board_to_string(self):
@@ -70,7 +72,8 @@ class Game():
 
 		for purser in self.pursers:
 			# Call pursuer policy
-			a = purser.Policy(self.board)
+			a = purser.Policy(self.evader.getPos())
+			# a = purser.Policy(self.board)
 			# Take pursuer action
 			purser.action(a)
 
