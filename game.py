@@ -46,8 +46,8 @@ class Game():
 		self.board = map.makeBoard()
 		self.board_str = ""
 
-		self.evader = Evader(random.randint(0, nrows), random.randint(0, ncols), self.board)
-		self.pursers = [Pursuer(random.randint(0, nrows), random.randint(0, ncols), self.board) for i in range(npursuers)]
+		self.evader = Evader(random.randint(0, nrows-1), random.randint(0, ncols-1), self.board)
+		self.pursers = [Pursuer(random.randint(0, nrows-1), random.randint(0, ncols-1), self.board) for i in range(npursuers)]
 		self.updateBoard()
 
 	def board_to_string(self):
@@ -94,7 +94,7 @@ class Game():
 				if self.board[x][y] == 'p':
 					self.board[x][y] = '.'
 				if self.board[x][y] == 'e':
-					self.board[x][y] == '.'
+					self.board[x][y] = '.'
 
 	def print(self):
 		print(self.board_str)
