@@ -5,7 +5,7 @@ import time
 
 if __name__ == "__main__":
 	parser = argparse.ArgumentParser()
-	parser.add_argument("-r", "--rows", help="Number of rows in board", default=31, type=int)
+	parser.add_argument("-r", "--rows", help="Number of rows in board", default=20, type=int)
 	parser.add_argument("-c", "--cols", help="Number of columns in board", default=16, type=int)
 	parser.add_argument("-e", "--evaders", help="Number of Evaders in board", default=1, type=int)
 	parser.add_argument("-p", "--pursuers", help="Number of Pursuers in board", default=4, type=int)
