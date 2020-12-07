@@ -1,6 +1,7 @@
 from map import Map
 from evader import Evader, board_distance
 from pursuer import Pursuer
+from MDP import MDP
 from pursuer_shortest_path import ShortestPathPursuer
 import os
 import time
@@ -46,13 +47,14 @@ class Game():
 			pass
 		self.board = map.makeBoard()
 		self.board_str = ""
+		self.MDP = MDP(nevaders, npursuers)
 
 		evader_pursuer_locs_valid = False
 		while not evader_pursuer_locs_valid:
 			self.evader = Evader(random.randint(1, nrows-2), random.randint(1, ncols-2), self.board)
 			
-			self.pursers = [ShortestPathPursuer(random.randint(1, nrows-2), random.randint(1, ncols-2), self.board) for i in range(npursuers)]
-			# self.pursers = [Pursuer(random.randint(1, nrows-1), random.randint(1, ncols-1), self.board) for i in range(npursuers)]
+			# self.pursers = [ShortestPathPursuer(random.randint(1, nrows-2), random.randint(1, ncols-2), self.board) for i in range(npursuers)]
+			self.pursers = [Pursuer(random.randint(1, nrows-1), random.randint(1, ncols-1), self.board) for i in range(npursuers)]
 			evader_pursuer_locs_valid = True
 			# Make sure evader does not spawn in a location with three walls / pursuers around it as in this case, the evader 
 			# often does nothing as its only move may be for it to move closer to the pursuers
@@ -98,13 +100,16 @@ class Game():
 		a = self.evader.policy(pursuer_positions)
 		self.evader.action(a)
 
+		# new policy from MDP.py
+		policy = self.MDP.Policy(self.board)
 		for purser in self.pursers:
 			# Call pursuer policy
-			a = purser.Policy(self.evader.getPos())
+			# a = purser.Policy(self.evader.getPos())
 			# a = purser.Policy(self.board)
 			# Take pursuer action
-			purser.action(a)
-
+			x, y = purser.getPos()
+			purser.action(policy[x][y])
+		
 		# Update board
 		self.clearBoard()
 		self.updateBoard()
