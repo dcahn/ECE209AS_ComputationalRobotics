@@ -71,7 +71,7 @@ class MDP:
                     break
 
             if i <= 2:
-                self.value[x][y] += 150     # up, down
+                self.value[x][y] += 300     # up, down
             else:
                 self.value[x][y] += 300     # left, right
             
@@ -89,10 +89,10 @@ class MDP:
 
                         # special condition that two pursuer are next to each other (no mid position)
                         if (x == pur_pos[i][0] and y == pur_pos[i][1]) or (x == pur_pos[j][0] and y == pur_pos[j][1]):
-                            self.reward[pur_pos[i][0]][pur_pos[i][1]] -= 50
-                            self.reward[pur_pos[j][0]][pur_pos[j][1]] -= 50
+                            self.reward[pur_pos[i][0]][pur_pos[i][1]] -= 100
+                            self.reward[pur_pos[j][0]][pur_pos[j][1]] -= 100
                         else:
-                            self.reward[x][y] -= 50
+                            self.reward[x][y] -= 100
 
     # value iteration
     def VI(self, board):
