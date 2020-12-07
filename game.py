@@ -102,14 +102,25 @@ class Game():
 
 		# new policy from MDP.py
 		policy = self.MDP.Policy(self.board)
+		pur_lst = []
 		for purser in self.pursers:
 			# Call pursuer policy
 			# a = purser.Policy(self.evader.getPos())
 			# a = purser.Policy(self.board)
+
 			# Take pursuer action
 			x, y = purser.getPos()
-			purser.action(policy[x][y])
-		
+			dx, dy = self.move(policy[x][y])
+
+			# avoid pursuers to occupy the same spot
+			if [x+dx, y+dy] in pur_lst:
+				purser.action(5)
+				pur_lst.append([x,y])
+
+			else:
+				purser.action(policy[x][y])
+				pur_lst.append([x+dx, y+dy])
+
 		# Update board
 		self.clearBoard()
 		self.updateBoard()
@@ -147,6 +158,18 @@ class Game():
 		# 		if self.board[i][j] == '.':
 		# 			return False
 		return False
+
+	def move(self, a):
+		if a == 1:
+			return -1, 0    # up
+		elif a == 2:
+			return 1, 0     # down
+		elif a == 3:
+			return 0, -1    # left
+		elif a == 4:
+			return 0, 1     # right
+
+		return 0, 0         # invalid action
 
 
 if __name__ == "__main__":
