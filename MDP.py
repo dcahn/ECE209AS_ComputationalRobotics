@@ -1,4 +1,5 @@
 import copy
+import math
 
 class MDP:
     def __init__(self, nevaders=1, npursuers=4):
@@ -24,7 +25,8 @@ class MDP:
         # run value iteration for 50 times
         for i in range(50):
             self.value = self.VI(board)
-
+            #self.board_to_string(self.value)
+            #self.print()
         return self.policy
 
     # initial value, reward, and policy for all states
@@ -34,21 +36,27 @@ class MDP:
         self.policy = copy.deepcopy(board)
 
         # set reward and value
-        eva_x, eva_y = 0, 0
+        eva_pos = []
+        pur_pos = []
         for x in range(len(self.value)):
             for y in range(len(self.value[x])):
-                if self.value[x][y] == '.' or self.value[x][y] == ' ' or self.value[x][y] == 'p':
+                if self.value[x][y] == '.' or self.value[x][y] == ' ':
                     self.value[x][y] = 0
                     self.reward[x][y] = 0
 
                 elif self.value[x][y] == 'e':
-                    self.value[x][y] = 500
+                    self.value[x][y] = 400
                     self.reward[x][y] = 0
-                    eva_x, eva_y = x, y
+                    eva_pos = [x, y]
+
+                elif self.value[x][y] == 'p':
+                    self.value[x][y] = 0
+                    self.reward[x][y] = 0
+                    pur_pos.append([x, y])
 
         # set the reward for 4 position of evader
         for i in range(1,5):
-            x, y = eva_x, eva_y
+            x, y = eva_pos[0], eva_pos[1]
 
             # reward sets max of 8 distances away form position of evader
             for k in range(8):  
@@ -63,13 +71,28 @@ class MDP:
                     break
 
             if i <= 2:
-                self.value[x][y] += 100     # up, down
+                self.value[x][y] += 150     # up, down
             else:
-                self.value[x][y] += 250     # left, right
+                self.value[x][y] += 300     # left, right
+            
+            # negative reward if pursuers are in same line
+            for i in range(self.npursuers):
+                for j in range(self.npursuers):
+                    # skip comparing itself
+                    if i == j:
+                        continue
+                    # check if the pursuers are in same line
+                    elif self.same_line(pur_pos[i], pur_pos[j], eva_pos):
+                        # find the mid position of the pursuers
+                        x = (pur_pos[i][0] + pur_pos[j][0])//2
+                        y = (pur_pos[i][1] + pur_pos[j][1])//2
 
-        #self.board_to_string(self.value)
-        #self.print()
-
+                        # special condition that two pursuer are next to each other (no mid position)
+                        if (x == pur_pos[i][0] and y == pur_pos[i][1]) or (x == pur_pos[j][0] and y == pur_pos[j][1]):
+                            self.reward[pur_pos[i][0]][pur_pos[i][1]] -= 50
+                            self.reward[pur_pos[j][0]][pur_pos[j][1]] -= 50
+                        else:
+                            self.reward[x][y] -= 50
 
     # value iteration
     def VI(self, board):
@@ -108,15 +131,40 @@ class MDP:
     def Bellman_Backup(self, r, v, df):
         return r + df*v
 
+    # check if the position of pursuers is in same line
+    def same_line(self, pos1, pos2, eva_pos):
+        dx = abs(pos2[0] - pos1[0])
+        dy = abs(pos2[1] - pos1[1])
+
+        if dx == 0:
+            y = min(pos2[1], pos1[1])
+            if y < eva_pos[1] < max(pos2[1], pos1[1]):
+                return False
+
+            for i in range(dy):
+                if isinstance(self.value[pos1[0]][y + i], str):
+                    return False
+            return True
+
+        elif dy == 0:
+            x = min(pos2[0], pos1[0])
+            if x < eva_pos[0] < max(pos2[0], pos1[0]):
+                return False
+            
+            for i in range(dx):
+                if isinstance(self.value[x + i][pos1[1]], str):
+                    return False
+            return True
+
+        return False
+
+
     def board_to_string(self, board):
         self.board_str = ""
         for row in board:
             temp = ""
             for col in row:
-                if isinstance(col, int):
-                    temp += str(col)
-                else:
-                    temp += col
+                temp += str(col)
             self.board_str += temp + "\n"
 
     def print(self):
