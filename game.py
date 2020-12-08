@@ -104,7 +104,7 @@ class Game():
 		# Maybe add a win check here to match the VI? Anyways pursuers don't need to move if 
 		# game is over
 		policy = self.VI.Policy(pursuer_positions, self.evader.getPos())
-		for i, pursuer in enumerate(self.pursuers):
+		for i, pursuer in enumerate(self.pursers):
 			pursuer.action(policy[i])
 		# Update board
 		self.clearBoard()
