@@ -3,47 +3,37 @@ from evader import Evader, board_distance
 from pursuer import Pursuer
 from MDP import MDP
 from pursuer_shortest_path import ShortestPathPursuer
+from pursuers_value_iteration import PursuersValueIteration
 import os
 import time
 import random
 
 class Game():
-	def __init__(self, nrows=20, ncols=16, nevaders=1, npursuers=4):
+	def __init__(self, nrows=8, ncols=14, nevaders=1, npursuers=4):
 		map = Map(nrows,ncols,"""
-		||||||||||||||||
-		|...............
-		|...............
-		|...............
-		|...............
-		|...............
-		|...............
-		|...............
-		|.........||||||
-		|.........||||||
-		|.........||||||
-		|.........||||||
-		|...............
-		|...............
-		|...............
-		|...............
-		|...............
-		|...............
-		|...............
-		||||||||||||||||
+		||||||||||||||
+		|.............
+		|.............
+		|.........||||
+		|.........||||
+		|.............
+		|.............
+		||||||||||||||
 		""")
 
 		while map.add_wall_obstacle(extend=True):
 			pass
 		self.board = map.makeBoard()
 		self.board_str = ""
-		self.MDP = MDP(nevaders, npursuers)
+		# self.MDP = MDP(nevaders, npursuers)
+		self.VI = PursuersValueIteration(npursuers, self.board)
 
 		evader_pursuer_locs_valid = False
 		while not evader_pursuer_locs_valid:
 			self.evader = Evader(random.randint(1, nrows-2), random.randint(1, ncols-2), self.board)
 			
 			# self.pursers = [ShortestPathPursuer(random.randint(1, nrows-2), random.randint(1, ncols-2), self.board) for i in range(npursuers)]
-			self.pursers = [Pursuer(random.randint(1, nrows-1), random.randint(1, ncols-1), self.board) for i in range(npursuers)]
+			self.pursers = [Pursuer(random.randint(1, nrows-2), random.randint(1, ncols-2), self.board) for i in range(npursuers)]
 			evader_pursuer_locs_valid = True
 			# Make sure evader does not spawn in a location with three walls / pursuers around it as in this case, the evader 
 			# often does nothing as its only move may be for it to move closer to the pursuers
@@ -90,6 +80,7 @@ class Game():
 		self.evader.action(a)
 
 		# new policy from MDP.py
+		'''
 		policy = self.MDP.Policy(self.board)
 		pur_lst = []
 		for purser in self.pursers:
@@ -109,7 +100,12 @@ class Game():
 			else:
 				purser.action(policy[x][y])
 				pur_lst.append([x+dx, y+dy])
-
+		'''
+		# Maybe add a win check here to match the VI? Anyways pursuers don't need to move if 
+		# game is over
+		policy = self.VI.Policy(pursuer_positions, self.evader.getPos())
+		for i, pursuer in enumerate(self.pursuers):
+			pursuer.action(policy[i])
 		# Update board
 		self.clearBoard()
 		self.updateBoard()
