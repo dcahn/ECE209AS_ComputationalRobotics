@@ -5,6 +5,7 @@ class MDP:
     def __init__(self, nevaders=1, npursuers=4):
         self.nevaders = nevaders
         self.npursuers = npursuers
+        self.reward_count = []
 
     def move(self, a):
         if a == 1:
@@ -75,24 +76,44 @@ class MDP:
             else:
                 self.value[x][y] += 300     # left, right
             
-            # negative reward if pursuers are in same line
-            for i in range(self.npursuers):
-                for j in range(self.npursuers):
-                    # skip comparing itself
-                    if i == j:
-                        continue
-                    # check if the pursuers are in same line
-                    elif self.same_line(pur_pos[i], pur_pos[j], eva_pos):
-                        # find the mid position of the pursuers
-                        x = (pur_pos[i][0] + pur_pos[j][0])//2
-                        y = (pur_pos[i][1] + pur_pos[j][1])//2
+        # negative reward if pursuers are in same line
+        for i in range(len(pur_pos)):
+            for j in range(i, len(pur_pos)):
+                # skip comparing itself
+                if i == j:
+                    continue
+                # check if the pursuers are in same line
+                elif self.same_line(pur_pos[i], pur_pos[j], eva_pos):
+                    # find the mid position of the pursuers
+                    x = (pur_pos[i][0] + pur_pos[j][0])//2
+                    y = (pur_pos[i][1] + pur_pos[j][1])//2
 
-                        # special condition that two pursuer are next to each other (no mid position)
-                        if (x == pur_pos[i][0] and y == pur_pos[i][1]) or (x == pur_pos[j][0] and y == pur_pos[j][1]):
-                            self.reward[pur_pos[i][0]][pur_pos[i][1]] -= 100
-                            self.reward[pur_pos[j][0]][pur_pos[j][1]] -= 100
-                        else:
-                            self.reward[x][y] -= 100
+                    # special condition that two pursuer are next to each other (no mid position)
+                    if (x == pur_pos[i][0] and y == pur_pos[i][1]) or (x == pur_pos[j][0] and y == pur_pos[j][1]):
+                        x1, y1 = pur_pos[i][0], pur_pos[i][1]
+                        x2, y2 = pur_pos[j][0], pur_pos[j][1]
+                        self.reward_count.append([x1, y1, 8])
+                        self.reward_count.append([x2, y2, 8])
+                    else:
+                        self.reward_count.append([x, y, 8])
+            
+        self.reward_count_down()
+
+    # adding counter for the negative reward for t time steps
+    def reward_count_down(self):
+        c = 0
+        while c < len(self.reward_count):
+            x, y, t = self.reward_count[c][0], self.reward_count[c][1], self.reward_count[c][2]
+            if t > 0:
+                self.reward[x][y] -= 5000
+                self.reward_count[c][2] -= 1
+            else:
+                del self.reward_count[c]
+                c -= 1
+            c += 1
+
+            
+        
 
     # value iteration
     def VI(self, board):
