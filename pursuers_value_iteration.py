@@ -119,11 +119,11 @@ class PursuersValueIteration:
                 transition_col_indices.append(new_state_index)
                 if game_won:
                     reward_row_indices.append(state_index)
-                    reward_col_indices.append(0)
+                    reward_col_indices.append(new_state_index)
                     rewards_action.append(100.0)
                 # print("new state:", new_state_index)
             transitions.append(scipy.sparse.csr_matrix((transition_probs, (transition_row_indices, transition_col_indices)), shape=(num_state_indices, num_state_indices)))
-            rewards.append(scipy.sparse.csr_matrix((rewards_action, (reward_row_indices, reward_col_indices)), shape=(num_state_indices, 1)))
+            rewards.append(scipy.sparse.csr_matrix((rewards_action, (reward_row_indices, reward_col_indices)), shape=(num_state_indices, num_state_indices)))
             scipy.sparse.save_npz('transitions_action_%d_seed_%d.npz' % (action_index, self.seed) transitions[-1])
             scipy.sparse.save_npz('rewards_action_%d_seed_%d.npz' % (action_index, self.seed) rewards[-1])
         return transitions, rewards   
