@@ -124,15 +124,15 @@ class PursuersValueIteration:
                 # print("new state:", new_state_index)
             transitions.append(scipy.sparse.csr_matrix((transition_probs, (transition_row_indices, transition_col_indices)), shape=(num_state_indices, num_state_indices)))
             rewards.append(scipy.sparse.csr_matrix((rewards_action, (reward_row_indices, reward_col_indices)), shape=(num_state_indices, num_state_indices)))
-            scipy.sparse.save_npz('transitions_action_%d_seed_%d.npz' % (action_index, self.seed) transitions[-1])
-            scipy.sparse.save_npz('rewards_action_%d_seed_%d.npz' % (action_index, self.seed) rewards[-1])
+            scipy.sparse.save_npz('transitions_action_%d_npursuers_%d_seed_%d.npz' % (action_index, self.num_pursuers, self.seed) transitions[-1])
+            scipy.sparse.save_npz('rewards_action_%d_npursuers_%d_seed_%d.npz' % (action_index, self.num_pursuers, self.seed) rewards[-1])
         return transitions, rewards   
 
     def valueIteration(self):
         transitions, rewards = self.compute_alltransitions_reward()
         valueIterationMDP = ValueIteration(transitions, rewards, 0.99)
         valueIterationMDP.run()
-        pickle.dump(valueIterationMDP.policy, 'policy_seed_%d.pkl' % self.seed)
+        pickle.dump(valueIterationMDP.policy, 'policy_npursuers_%d_seed_%d.pkl' % (self.num_pursuers, self.seed))
         return valueIterationMDP.policy
 
     def Policy(self, pursuer_positions, evader_position):
