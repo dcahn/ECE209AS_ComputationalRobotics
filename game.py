@@ -9,7 +9,7 @@ import time
 import random
 
 class Game():
-	def __init__(self, nrows=8, ncols=14, nevaders=1, npursuers=4):
+	def __init__(self, nrows=8, ncols=14, nevaders=1, npursuers=4, seed=0):
 		map = Map(nrows,ncols,"""
 		||||||||||||||
 		|.............
@@ -26,7 +26,7 @@ class Game():
 		self.board = map.makeBoard()
 		self.board_str = ""
 		# self.MDP = MDP(nevaders, npursuers)
-		self.VI = PursuersValueIteration(npursuers, self.board)
+		self.VI = PursuersValueIteration(npursuers, self.board, seed)
 
 		evader_pursuer_locs_valid = False
 		while not evader_pursuer_locs_valid:

@@ -2,6 +2,7 @@ import random
 import copy
 import operator as op
 import scipy
+import pickle
 from functools import reduce
 import itertools
 import time
@@ -28,11 +29,12 @@ def board_to_indices(board):
 
 class PursuersValueIteration:
     # Pursuer policy that performs value iteration to find a policy for the pursuers.
-    def __init__(self, num_pursuers, board):
+    def __init__(self, num_pursuers, board, seed):
         self.board = board
         self.num_pursuers = num_pursuers
         self.pos_indices, self.num_pos_indices, self.pos_indices_to_loc = board_to_indices(self.board)
         self.policy = None
+        self.seed = seed
 
     def pursuer_positions_to_index(self, pursuer_positions):
         # Convert pursuer positions to an index by first converting the pursuer's individual positions to 
@@ -97,7 +99,7 @@ class PursuersValueIteration:
         print(num_state_indices)
         transitions = []
         rewards = []
-        for pursuer_actions in pursuer_actions_iter:
+        for action_index, pursuer_actions in enumerate(pursuer_actions_iter):
             # print(pursuer_actions)
             transition_row_indices = range(num_state_indices)
             transition_col_indices = []
@@ -122,12 +124,15 @@ class PursuersValueIteration:
                 # print("new state:", new_state_index)
             transitions.append(scipy.sparse.csr_matrix((transition_probs, (transition_row_indices, transition_col_indices)), shape=(num_state_indices, num_state_indices)))
             rewards.append(scipy.sparse.csr_matrix((rewards_action, (reward_row_indices, reward_col_indices)), shape=(num_state_indices, 1)))
+            scipy.sparse.save_npz('transitions_action_%d_seed_%d.npz' % (action_index, self.seed) transitions[-1])
+            scipy.sparse.save_npz('rewards_action_%d_seed_%d.npz' % (action_index, self.seed) rewards[-1])
         return transitions, rewards   
 
     def valueIteration(self):
         transitions, rewards = self.compute_alltransitions_reward()
         valueIterationMDP = ValueIteration(transitions, rewards, 0.99)
         valueIterationMDP.run()
+        pickle.dump(valueIterationMDP.policy, 'policy_seed_%d.pkl' % self.seed)
         return valueIterationMDP.policy
 
     def Policy(self, pursuer_positions, evader_position):
