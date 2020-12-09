@@ -13,7 +13,7 @@ import random
 import numpy as np
 
 class Game():
-	def __init__(self, nrows=20, ncols=10, nevaders=1, npursuers=4, seed=0, bfs=False, empty=False, vi_irrational=False, pursuer_range=4):
+	def __init__(self, nrows=20, ncols=10, nevaders=1, npursuers=4, seed=0, bfs=False, empty=False, vi_irrational=False, vi_noirrational=False, pursuer_range=4):
 		if empty:
 			self.board = []
 			self.board_str = ""
@@ -49,12 +49,15 @@ class Game():
 			self.board_str = ""
 		# self.MDP = MDP(nevaders, npursuers)
 		self.vi_irrational = vi_irrational
+		self.vi_noirrational = vi_noirrational
 		self.bfs = bfs
 		if vi_irrational:
 			self.irrational_policy = PursuerLimitedRange(npursuers, self.board, pursuer_range, nrows, ncols, empty, seed, bfs)
 			self.VI = PursuersVIIrrational(npursuers, self.board, seed, pursuer_range, nrows, ncols, empty, bfs)
 		else:
-			if not bfs:
+			if not bfs or vi_noirrational:
+				if vi_noirrational:
+					self.irrational_policy = PursuerLimitedRange(npursuers, self.board, pursuer_range, nrows, ncols, empty, seed, bfs)
 				self.VI = PursuersValueIteration(npursuers, self.board, seed, nrows, ncols, empty)
 			else:
 				self.BFS = PursuersBFS(npursuers, self.board)
@@ -152,8 +155,11 @@ class Game():
 			policy.append(self.irrational_policy.Policy(pursuer_positions, self.evader.getPos(), 0))
 			policy.extend(self.VI.Policy(pursuer_positions, self.evader.getPos()))
 		else:
-			if not self.bfs:
+			if not self.bfs or self.vi_noirrational:
 				policy = self.VI.Policy(pursuer_positions, self.evader.getPos())
+				if self.vi_noirrational:
+					policy = list(policy)
+					policy[0] = self.irrational_policy.Policy(pursuer_positions, self.evader.getPos(), 0)
 			else:
 				if self.policy is None:
 					self.policy = self.BFS.bfs(pursuer_positions, self.evader.getPos())
