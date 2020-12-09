@@ -1,12 +1,13 @@
 import random
 import copy
+import os
 import operator as op
 import scipy
 import pickle
 from functools import reduce
 import itertools
 import time
-from evader import board_distance
+from evader import board_distance, distance
 from mdptoolbox.mdp import ValueIteration
 
 def board_to_indices(board):
@@ -100,6 +101,12 @@ class PursuersValueIteration:
         transitions = []
         rewards = []
         for action_index, pursuer_actions in enumerate(pursuer_actions_iter):
+            transitions_filename = 'transitions_action_%d_npursuers_%d_seed_%d.npz' % (action_index, self.num_pursuers, self.seed)
+            rewards_filename = 'rewards_action_%d_npursuers_%d_seed_%d.npz' % (action_index, self.num_pursuers, self.seed)
+            if os.path.exists(transitions_filename) and os.path.exists(rewards_filename):
+                transitions.append(scipy.sparse.load_npz(transitions_filename))
+                rewards.append(scipy.sparse.load_npz(rewards_filename))
+                continue
             # print(pursuer_actions)
             transition_row_indices = range(num_state_indices)
             transition_col_indices = []
@@ -114,8 +121,13 @@ class PursuersValueIteration:
                 # print(state_index)
                 pursuer_positions, evader_position = self.compute_pursuer_evader_positions(state_index)
                 # print(pursuer_positions)
+                # print("Old: ", state_index, pursuer_positions, evader_position, pursuer_actions)
                 pursuer_positions, evader_position, game_won = self.compute_transition(pursuer_positions, evader_position, pursuer_actions)
                 new_state_index = self.compute_state_index(pursuer_positions, evader_position)
+                # print("New: ", new_state_index, pursuer_positions, evader_position)
+                # if new_state_index < 0:
+                #     print(self.board_to_string())
+                assert(new_state_index >= 0)
                 transition_col_indices.append(new_state_index)
                 if game_won:
                     reward_row_indices.append(state_index)
@@ -130,7 +142,7 @@ class PursuersValueIteration:
 
     def valueIteration(self):
         transitions, rewards = self.compute_alltransitions_reward()
-        valueIterationMDP = ValueIteration(transitions, rewards, 0.99)
+        valueIterationMDP = ValueIteration(transitions, rewards, 0.99, skip_check=True)
         valueIterationMDP.run()
         policy_filename = 'policy_npursuers_%d_seed_%d.pkl' % (self.num_pursuers, self.seed)
         with open(policy_filename, 'wb') as policy_file:
@@ -189,8 +201,8 @@ class PursuersValueIteration:
             min_pursuer_distance = None
             # Compute distance to closest pursuer after taking the action
             for pursuer_position in pursuer_positions:
-                # dist_pursuer = distance(pursuer_position, (x, y))
-                dist_pursuer = board_distance(pursuer_position, (x, y), self.board)
+                dist_pursuer = distance(pursuer_position, (x, y))
+                # dist_pursuer = board_distance(pursuer_position, (x, y), self.board)
                 if min_pursuer_distance is None or dist_pursuer < min_pursuer_distance:
                     min_pursuer_distance = dist_pursuer
             # Update maximum distance to closest pursuer and corresponding action
@@ -206,6 +218,15 @@ class PursuersValueIteration:
             if pursuer_position == evader_position:
                 return True
         return False
+        
+    def board_to_string(self):
+        self.board_str = ""
+        for row in self.board:
+            temp = ""
+            for col in row:
+                temp += col
+            self.board_str += temp + "\n"
+        return self.board_str
 
 
     

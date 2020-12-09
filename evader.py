@@ -80,8 +80,8 @@ class Evader:
             min_pursuer_distance = None
             # Compute distance to closest pursuer after taking the action
             for pursuer_position in pursuer_positions:
-                # dist_pursuer = distance(pursuer_position, (x, y))
-                dist_pursuer = board_distance(pursuer_position, (x, y), self.board)
+                dist_pursuer = distance(pursuer_position, (x, y))
+                # dist_pursuer = board_distance(pursuer_position, (x, y), self.board)
                 if min_pursuer_distance is None or dist_pursuer < min_pursuer_distance:
                     min_pursuer_distance = dist_pursuer
             # Update maximum distance to closest pursuer and corresponding action
