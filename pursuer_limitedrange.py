@@ -19,7 +19,7 @@ class PursuerLimitedRange:
     def Policy(self, pursuer_positions, evader_position, pursuer_index):
         if distance(pursuer_positions[pursuer_index], evader_position) > self.pursuer_range:
             return random.randint(1, 4)
-        if not self.bfs:
+        if not self.use_bfs:
             return self.VI.Policy(pursuer_positions, evader_position)[pursuer_index]
         return self.BFS.bfs(pursuer_positions, evader_position)[0][pursuer_index]
 

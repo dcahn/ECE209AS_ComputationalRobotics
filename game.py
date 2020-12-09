@@ -149,7 +149,7 @@ class Game():
 		# game is over
 		if self.vi_irrational:
 			policy = []
-			policy[0] = self.irrational_policy.Policy(pursuer_positions, self.evader.getPos(), 0)
+			policy.append(self.irrational_policy.Policy(pursuer_positions, self.evader.getPos(), 0))
 			policy.extend(self.VI.Policy(pursuer_positions, self.evader.getPos()))
 		else:
 			if not self.bfs:

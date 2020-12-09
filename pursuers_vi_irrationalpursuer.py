@@ -28,14 +28,15 @@ class PursuersVIIrrational(PursuersValueIteration):
         game_won = self.check_win(pursuer_positions, evader_position)
         if game_won:
             pursuer_newpositions = [[pursuer_positions[0]]] + pursuer_positions[1:]
-            return pursuer_newpositions, evader_position, [True]
+            return pursuer_newpositions, [evader_position], [True]
         irrational_pursuer_positions = []
         if distance(pursuer_positions[0], evader_position) > self.pursuer_range:
             for pursuer_action in range(1, 5):
                 irrational_pursuer_newposition = self.pursuer_try_action(pursuer_positions[0], pursuer_action)
                 irrational_pursuer_positions.append(irrational_pursuer_newposition)
         else:
-            irrational_pursuer_newposition = self.irrational_pursuer.Policy(pursuer_positions, evader_position, 0)
+            pursuer_action = self.irrational_pursuer.Policy(pursuer_positions, evader_position, 0)
+            irrational_pursuer_newposition = self.pursuer_try_action(pursuer_positions[0], pursuer_action)
             irrational_pursuer_positions.append(irrational_pursuer_newposition)
         pursuer_newpositions.append(irrational_pursuer_positions)
         for pursuer_index, pursuer_action in enumerate(pursuer_actions):
@@ -91,6 +92,7 @@ class PursuersVIIrrational(PursuersValueIteration):
                 pursuer_positions = [irrational_pursuer_position] + pursuer_positions_list[1:]
                 evader_position = evader_positions_list[pos_index]
                 game_won = game_won_list[pos_index]
+                # print(evader_positions_list)
                 new_state_index = self.compute_state_index(pursuer_positions, evader_position)
                 # print("New: ", new_state_index, pursuer_positions, evader_position)
                 # if new_state_index < 0:
