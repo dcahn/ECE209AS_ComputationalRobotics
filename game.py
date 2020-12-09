@@ -5,13 +5,15 @@ from MDP import MDP
 from pursuer_shortest_path import ShortestPathPursuer
 from pursuers_value_iteration import PursuersValueIteration
 from pursuers_bfs import PursuersBFS
+from pursuer_limitedrange import PursuerLimitedRange
+from pursuers_vi_irrationalpursuer import PursuersVIIrrational
 import os
 import time
 import random
 import numpy as np
 
 class Game():
-	def __init__(self, nrows=20, ncols=10, nevaders=1, npursuers=4, seed=0, bfs=False, empty=False):
+	def __init__(self, nrows=20, ncols=10, nevaders=1, npursuers=4, seed=0, bfs=False, empty=False, vi_irrational=False, pursuer_range=4):
 		if empty:
 			self.board = []
 			self.board_str = ""
@@ -46,11 +48,16 @@ class Game():
 			self.board = map.makeBoard()
 			self.board_str = ""
 		# self.MDP = MDP(nevaders, npursuers)
+		self.vi_irrational = vi_irrational
 		self.bfs = bfs
-		if not bfs:
-			self.VI = PursuersValueIteration(npursuers, self.board, seed)
+		if vi_irrational:
+			self.irrational_policy = PursuerLimitedRange(npursuers, self.board, pursuer_range, seed, bfs)
+			self.VI = PursuersVIIrrational(npursuers, self.board, seed, pursuer_range, bfs)
 		else:
-			self.BFS = PursuersBFS(npursuers, self.board)
+			if not bfs:
+				self.VI = PursuersValueIteration(npursuers, self.board, seed)
+			else:
+				self.BFS = PursuersBFS(npursuers, self.board)
 		self.policy = None
 		self.num_moves = 0
 
@@ -140,12 +147,17 @@ class Game():
 		'''
 		# Maybe add a win check here to match the VI? Anyways pursuers don't need to move if 
 		# game is over
-		if not self.bfs:
-			policy = self.VI.Policy(pursuer_positions, self.evader.getPos())
+		if self.vi_irrational:
+			policy = []
+			policy[0] = self.irrational_policy.Policy(pursuer_positions, self.evader.getPos(), 0)
+			policy.extend(self.VI.Policy(pursuer_positions, self.evader.getPos()))
 		else:
-			if self.policy is None:
-				self.policy = self.BFS.bfs(pursuer_positions, self.evader.getPos())
-			policy = self.policy[self.num_moves]
+			if not self.bfs:
+				policy = self.VI.Policy(pursuer_positions, self.evader.getPos())
+			else:
+				if self.policy is None:
+					self.policy = self.BFS.bfs(pursuer_positions, self.evader.getPos())
+				policy = self.policy[self.num_moves]
 		for i, pursuer in enumerate(self.pursers):
 			pursuer.action(policy[i])
 		self.num_moves += 1

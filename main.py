@@ -15,11 +15,13 @@ if __name__ == "__main__":
 	parser.add_argument("-ns", "--numpy_seed", help="Random seed for starting positions", default=1, type=int)
 	parser.add_argument("--bfs", help="Use BFS to compute optimal pursuer actions", action='store_true', default=False)
 	parser.add_argument("--empty", help="Use empty board", action="store_true", default=False)
+	parser.add_argument("--vi-irrational", help="Use VI accounting for irrational pursuer", action="store_true", default=False)
+	parser.add_argument("--pursuer-range", help="Range for irrational pursuer", default=4, type=float)
 	args = parser.parse_args()
 
 	random.seed(args.seed)
 	np.random.seed(args.numpy_seed)
-	game = Game(args.rows, args.cols, args.evaders, args.pursuers, args.seed, args.bfs, args.empty)
+	game = Game(args.rows, args.cols, args.evaders, args.pursuers, args.seed, args.bfs, args.empty, args.vi_irrational, args.pursuer_range)
 	game.print()
 	while not game.done():
 		game.step()
