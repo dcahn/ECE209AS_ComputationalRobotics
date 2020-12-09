@@ -9,6 +9,7 @@ import itertools
 import time
 from evader import board_distance, distance
 from mdptoolbox.mdp import ValueIteration
+import multiprocessing as mp
 
 def board_to_indices(board):
     # Make a grid of indices, where the index at each valid board location 
@@ -92,52 +93,54 @@ class PursuersValueIteration:
         if game_won:
             return pursuer_newpositions, evader_position, True
         return pursuer_newpositions, evader_newposition, False
-    
-    def compute_alltransitions_reward(self):
+
+    def parallelize(self, iteration):
         start = time.time()
+        action_index, pursuer_actions = iteration
+        transitions_filename = 'transitions_action_%d_npursuers_%d_seed_%d.npz' % (action_index, self.num_pursuers, self.seed)
+        rewards_filename = 'rewards_action_%d_npursuers_%d_seed_%d.npz' % (action_index, self.num_pursuers, self.seed)
+        if os.path.exists(transitions_filename) and os.path.exists(rewards_filename):
+            return scipy.sparse.load_npz(transitions_filename), scipy.sparse.load_npz(rewards_filename)
+        # print(pursuer_actions)
+        transition_row_indices = range(self.num_state_indices)
+        transition_col_indices = []
+        transition_probs = [1.0] * self.num_state_indices
+        reward_row_indices = []
+        reward_col_indices = []
+        rewards_action = []
+        for state_index in range(self.num_state_indices):
+            if state_index % 1000 == 0:
+                print(state_index, time.time() - start)
+                # print(time.time() - start)
+            # print(state_index)
+            pursuer_positions, evader_position = self.compute_pursuer_evader_positions(state_index)
+            # print(pursuer_positions)
+            # print("Old: ", state_index, pursuer_positions, evader_position, pursuer_actions)
+            pursuer_positions, evader_position, game_won = self.compute_transition(pursuer_positions, evader_position, pursuer_actions)
+            new_state_index = self.compute_state_index(pursuer_positions, evader_position)
+            # print("New: ", new_state_index, pursuer_positions, evader_position)
+            # if new_state_index < 0:
+            #     print(self.board_to_string())
+            assert(new_state_index >= 0)
+            transition_col_indices.append(new_state_index)
+            if game_won:
+                reward_row_indices.append(state_index)
+                reward_col_indices.append(new_state_index)
+                rewards_action.append(100.0)
+            # print("new state:", new_state_index)
+        transition = scipy.sparse.csr_matrix((transition_probs, (transition_row_indices, transition_col_indices)), shape=(self.num_state_indices, self.num_state_indices))
+        reward = scipy.sparse.csr_matrix((rewards_action, (reward_row_indices, reward_col_indices)), shape=(self.num_state_indices, self.num_state_indices))
+        #scipy.sparse.save_npz('transitions_action_%d_npursuers_%d_seed_%d.npz' % (action_index, self.num_pursuers, self.seed), transition)
+        #scipy.sparse.save_npz('rewards_action_%d_npursuers_%d_seed_%d.npz' % (action_index, self.num_pursuers, self.seed), reward)
+        return transition, reward
+    def compute_alltransitions_reward(self):
         pursuer_actions_iter = itertools.product(range(1, 5), repeat=self.num_pursuers)
-        num_state_indices = self.num_pos_indices ** (self.num_pursuers + 1)
-        print(num_state_indices)
+        self.num_state_indices = self.num_pos_indices ** (self.num_pursuers + 1)
+        print(self.num_state_indices)
         transitions = []
         rewards = []
-        for action_index, pursuer_actions in enumerate(pursuer_actions_iter):
-            transitions_filename = 'transitions_action_%d_npursuers_%d_seed_%d.npz' % (action_index, self.num_pursuers, self.seed)
-            rewards_filename = 'rewards_action_%d_npursuers_%d_seed_%d.npz' % (action_index, self.num_pursuers, self.seed)
-            if os.path.exists(transitions_filename) and os.path.exists(rewards_filename):
-                transitions.append(scipy.sparse.load_npz(transitions_filename))
-                rewards.append(scipy.sparse.load_npz(rewards_filename))
-                continue
-            # print(pursuer_actions)
-            transition_row_indices = range(num_state_indices)
-            transition_col_indices = []
-            transition_probs = [1.0] * num_state_indices
-            reward_row_indices = []
-            reward_col_indices = []
-            rewards_action = []
-            for state_index in range(num_state_indices):
-                if state_index % 1000 == 0:
-                    print(state_index, time.time() - start)
-                    # print(time.time() - start)
-                # print(state_index)
-                pursuer_positions, evader_position = self.compute_pursuer_evader_positions(state_index)
-                # print(pursuer_positions)
-                # print("Old: ", state_index, pursuer_positions, evader_position, pursuer_actions)
-                pursuer_positions, evader_position, game_won = self.compute_transition(pursuer_positions, evader_position, pursuer_actions)
-                new_state_index = self.compute_state_index(pursuer_positions, evader_position)
-                # print("New: ", new_state_index, pursuer_positions, evader_position)
-                # if new_state_index < 0:
-                #     print(self.board_to_string())
-                assert(new_state_index >= 0)
-                transition_col_indices.append(new_state_index)
-                if game_won:
-                    reward_row_indices.append(state_index)
-                    reward_col_indices.append(new_state_index)
-                    rewards_action.append(100.0)
-                # print("new state:", new_state_index)
-            transitions.append(scipy.sparse.csr_matrix((transition_probs, (transition_row_indices, transition_col_indices)), shape=(num_state_indices, num_state_indices)))
-            rewards.append(scipy.sparse.csr_matrix((rewards_action, (reward_row_indices, reward_col_indices)), shape=(num_state_indices, num_state_indices)))
-            scipy.sparse.save_npz('transitions_action_%d_npursuers_%d_seed_%d.npz' % (action_index, self.num_pursuers, self.seed), transitions[-1])
-            scipy.sparse.save_npz('rewards_action_%d_npursuers_%d_seed_%d.npz' % (action_index, self.num_pursuers, self.seed), rewards[-1])
+        pool = mp.Pool(16)
+        transitions, rewards = zip(*pool.map(self.parallelize, enumerate(pursuer_actions_iter)))
         return transitions, rewards   
 
     def valueIteration(self):
