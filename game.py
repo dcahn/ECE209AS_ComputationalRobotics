@@ -11,29 +11,40 @@ import random
 import numpy as np
 
 class Game():
-	def __init__(self, nrows=20, ncols=10, nevaders=1, npursuers=4, seed=0, bfs=False):
-		map_string = ""
-		center_obstacle_rows = range(nrows // 2 - int(np.ceil(nrows / 8)), nrows // 2 + int(np.ceil(nrows / 8)))
-		center_obstacle_cols = range(ncols - (ncols // 2 - 1), ncols)
-		for row in range(nrows):
-			if row == 0 or row == nrows - 1:
-				map_string += '|' * ncols
-			else:
-				if row in center_obstacle_rows:
-					for col in range(ncols):
-						if col == 0 or col in center_obstacle_cols:
-							map_string += '|'
-						else:
-							map_string += '.'
+	def __init__(self, nrows=20, ncols=10, nevaders=1, npursuers=4, seed=0, bfs=False, empty=False):
+		if empty:
+			self.board = []
+			self.board_str = ""
+			for row in range(nrows):
+				self.board.append([])
+				for col in range(2 * ncols):
+					if col == 0 or col == 2 * ncols - 1 or row == 0 or row == nrows - 1:
+						self.board[row].append('|')
+					else:
+						self.board[row].append('.')
+		else:
+			map_string = ""
+			center_obstacle_rows = range(nrows // 2 - int(np.ceil(nrows / 8)), nrows // 2 + int(np.ceil(nrows / 8)))
+			center_obstacle_cols = range(ncols - (ncols // 2 - 1), ncols)
+			for row in range(nrows):
+				if row == 0 or row == nrows - 1:
+					map_string += '|' * ncols
 				else:
-					map_string += ('|' + '.' * (ncols - 1))
-			map_string += '\n'
-		map = Map(nrows,ncols,map_string)
-
-		while map.add_wall_obstacle(extend=True):
-			pass
-		self.board = map.makeBoard()
-		self.board_str = ""
+					if row in center_obstacle_rows:
+						for col in range(ncols):
+							if col == 0 or col in center_obstacle_cols:
+								map_string += '|'
+							else:
+								map_string += '.'
+					else:
+						map_string += ('|' + '.' * (ncols - 1))
+				map_string += '\n'
+			map = Map(nrows,ncols,map_string)
+	
+			while map.add_wall_obstacle(extend=True):
+				pass
+			self.board = map.makeBoard()
+			self.board_str = ""
 		# self.MDP = MDP(nevaders, npursuers)
 		self.bfs = bfs
 		if not bfs:
