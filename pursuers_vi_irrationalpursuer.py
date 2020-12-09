@@ -17,7 +17,7 @@ class PursuersVIIrrational(PursuersValueIteration):
     # Pursuer policy that performs value iteration to find a policy for the pursuers 
     # given that one of the pursuers follows an irrational policy. We assume the irrational 
     # pursuer is the first pursuer.
-    def __init__(self, num_pursuers, board, seed, pursuer_range, use_bfs=False, nrows, ncols, empty):
+    def __init__(self, num_pursuers, board, seed, pursuer_range, nrows, ncols, empty, use_bfs=False):
         self.pursuer_range = pursuer_range
         self.irrational_pursuer = PursuerLimitedRange(num_pursuers, board, pursuer_range, seed, use_bfs)
         super().__init__(num_pursuers, board, seed, nrows, ncols, empty)
