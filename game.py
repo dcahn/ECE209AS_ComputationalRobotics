@@ -4,13 +4,14 @@ from pursuer import Pursuer
 from MDP import MDP
 from pursuer_shortest_path import ShortestPathPursuer
 from pursuers_value_iteration import PursuersValueIteration
+from pursuers_bfs import PursuersBFS
 import os
 import time
 import random
 import numpy as np
 
 class Game():
-	def __init__(self, nrows=20, ncols=10, nevaders=1, npursuers=4, seed=0):
+	def __init__(self, nrows=20, ncols=10, nevaders=1, npursuers=4, seed=0, bfs=False):
 		map = Map(nrows,ncols,"""
 		||||||||||
 		|.........
@@ -34,7 +35,12 @@ class Game():
 		self.board = map.makeBoard()
 		self.board_str = ""
 		# self.MDP = MDP(nevaders, npursuers)
-		self.VI = PursuersValueIteration(npursuers, self.board, seed)
+		if not bfs:
+			self.VI = PursuersValueIteration(npursuers, self.board, seed)
+		else:
+			self.BFS = PursuersBFS(npursuers, self.board)
+		self.policy = None
+		self.num_moves = 0
 
 		evader_pursuer_locs_valid = False
 		while not evader_pursuer_locs_valid:
@@ -122,9 +128,15 @@ class Game():
 		'''
 		# Maybe add a win check here to match the VI? Anyways pursuers don't need to move if 
 		# game is over
-		policy = self.VI.Policy(pursuer_positions, self.evader.getPos())
+		if not bfs:
+		    policy = self.VI.Policy(pursuer_positions, self.evader.getPos())
+		else:
+			if self.policy is None:
+				self.policy = self.BFS.bfs(pursuer_positions, self.evader.getPos())
+			policy = self.policy[self.num_moves]
 		for i, pursuer in enumerate(self.pursers):
 			pursuer.action(policy[i])
+		self.num_moves += 1
 		# Update board
 		self.clearBoard()
 		self.updateBoard()
