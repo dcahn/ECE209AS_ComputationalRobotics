@@ -12,29 +12,30 @@ import numpy as np
 
 class Game():
 	def __init__(self, nrows=20, ncols=10, nevaders=1, npursuers=4, seed=0, bfs=False):
-		map = Map(nrows,ncols,"""
-		||||||||||
-		|.........
-		|.........
-		|.........
-		|.........
-		|.....||||
-		|.....||||
-		|.....||||
-		|.....||||
-		|.........
-		|.........
-		|.........
-		|.........
-		|.........
-		||||||||||
-		""")
+		map_string = ""
+		center_obstacle_rows = range(nrows // 2 - int(np.ceil(nrows / 8)), nrows // 2 + int(np.ceil(nrows / 8)))
+		center_obstacle_cols = range(ncols - (ncols // 2 - 1), ncols)
+		for row in range(nrows):
+			if row == 0 or row == nrows - 1:
+				map_string += '|' * ncols
+			else:
+				if row in center_obstacle_rows:
+					for col in range(ncols):
+						if col == 0 or col in center_obstacle_cols:
+							map_string += '|'
+						else:
+							map_string += '.'
+				else:
+					map_string += ('|' + '.' * (ncols - 1))
+			map_string += '\n'
+		map = Map(nrows,ncols,map_string)
 
 		while map.add_wall_obstacle(extend=True):
 			pass
 		self.board = map.makeBoard()
 		self.board_str = ""
 		# self.MDP = MDP(nevaders, npursuers)
+		self.bfs = bfs
 		if not bfs:
 			self.VI = PursuersValueIteration(npursuers, self.board, seed)
 		else:
@@ -128,8 +129,8 @@ class Game():
 		'''
 		# Maybe add a win check here to match the VI? Anyways pursuers don't need to move if 
 		# game is over
-		if not bfs:
-		    policy = self.VI.Policy(pursuer_positions, self.evader.getPos())
+		if not self.bfs:
+			policy = self.VI.Policy(pursuer_positions, self.evader.getPos())
 		else:
 			if self.policy is None:
 				self.policy = self.BFS.bfs(pursuer_positions, self.evader.getPos())
