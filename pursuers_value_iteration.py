@@ -141,10 +141,14 @@ class PursuersValueIteration:
         return transitions, rewards   
 
     def valueIteration(self):
+        policy_filename = 'policy_npursuers_%d_seed_%d.pkl' % (self.num_pursuers, self.seed)
+        if os.path.exists(policy_filename):
+            with open(policy_filename, 'rb') as policy_file:
+                policy = pickle.load(policy_file)
+            return policy
         transitions, rewards = self.compute_alltransitions_reward()
         valueIterationMDP = ValueIteration(transitions, rewards, 0.99, skip_check=True)
         valueIterationMDP.run()
-        policy_filename = 'policy_npursuers_%d_seed_%d.pkl' % (self.num_pursuers, self.seed)
         with open(policy_filename, 'wb') as policy_file:
             pickle.dump(valueIterationMDP.policy, policy_file)
         return valueIterationMDP.policy
