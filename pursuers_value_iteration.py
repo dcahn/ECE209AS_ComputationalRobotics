@@ -31,12 +31,15 @@ def board_to_indices(board):
 
 class PursuersValueIteration:
     # Pursuer policy that performs value iteration to find a policy for the pursuers.
-    def __init__(self, num_pursuers, board, seed):
+    def __init__(self, num_pursuers, board, seed, nrows, ncols, empty):
         self.board = board
         self.num_pursuers = num_pursuers
         self.pos_indices, self.num_pos_indices, self.pos_indices_to_loc = board_to_indices(self.board)
         self.policy = None
         self.seed = seed
+        self.nrows = nrows
+        self.ncols = ncols
+        self.empty = empty
 
     def pursuer_positions_to_index(self, pursuer_positions):
         # Convert pursuer positions to an index by first converting the pursuer's individual positions to 
@@ -97,8 +100,8 @@ class PursuersValueIteration:
     def parallelize(self, iteration):
         start = time.time()
         action_index, pursuer_actions = iteration
-        transitions_filename = 'transitions_action_%d_npursuers_%d_seed_%d.npz' % (action_index, self.num_pursuers, self.seed)
-        rewards_filename = 'rewards_action_%d_npursuers_%d_seed_%d.npz' % (action_index, self.num_pursuers, self.seed)
+        transitions_filename = 'transitions_action_%d_npursuers_%d_seed_%d_nrows_%d_ncols_%d_empty_%s.npz' % (action_index, self.num_pursuers, self.seed, self.nrows, self.ncols, self.empty)
+        rewards_filename = 'rewards_action_%d_npursuers_%d_seed_%d_nrows_%d_ncols_%d_empty_%s.npz' % (action_index, self.num_pursuers, self.seed, self.nrows, self.ncols, self.empty)
         if os.path.exists(transitions_filename) and os.path.exists(rewards_filename):
             return scipy.sparse.load_npz(transitions_filename), scipy.sparse.load_npz(rewards_filename)
         # print(pursuer_actions)
@@ -144,7 +147,7 @@ class PursuersValueIteration:
         return transitions, rewards   
 
     def valueIteration(self):
-        policy_filename = 'policy_npursuers_%d_seed_%d.pkl' % (self.num_pursuers, self.seed)
+        policy_filename = 'policy_npursuers_%d_seed_%d_nrows_%d_ncols_%d_empty_%s.pkl' % (self.num_pursuers, self.seed, self.nrows, self.ncols, self.empty)
         if os.path.exists(policy_filename):
             with open(policy_filename, 'rb') as policy_file:
                 policy = pickle.load(policy_file)

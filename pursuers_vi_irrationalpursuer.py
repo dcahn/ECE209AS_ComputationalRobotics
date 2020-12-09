@@ -17,10 +17,10 @@ class PursuersVIIrrational(PursuersValueIteration):
     # Pursuer policy that performs value iteration to find a policy for the pursuers 
     # given that one of the pursuers follows an irrational policy. We assume the irrational 
     # pursuer is the first pursuer.
-    def __init__(self, num_pursuers, board, seed, pursuer_range, use_bfs=False):
+    def __init__(self, num_pursuers, board, seed, pursuer_range, use_bfs=False, nrows, ncols, empty):
         self.pursuer_range = pursuer_range
         self.irrational_pursuer = PursuerLimitedRange(num_pursuers, board, pursuer_range, seed, use_bfs)
-        super().__init__(num_pursuers, board, seed)
+        super().__init__(num_pursuers, board, seed, nrows, ncols, empty)
     
     def compute_transition(self, pursuer_positions, evader_position, pursuer_actions):
         pursuer_newpositions = []
@@ -67,8 +67,8 @@ class PursuersVIIrrational(PursuersValueIteration):
     def parallelize(self, iteration):
         start = time.time()
         action_index, pursuer_actions = iteration
-        transitions_filename = 'transitions_action_%d_npursuers_%d_seed_%d_irrationalpursuer.npz' % (action_index, self.num_pursuers, self.seed)
-        rewards_filename = 'rewards_action_%d_npursuers_%d_seed_%d_irrationalpursuer.npz' % (action_index, self.num_pursuers, self.seed)
+        transitions_filename = 'transitions_action_%d_npursuers_%d_seed_%d_nrows_%d_ncols_%d_empty_%s_irrationalpursuer.npz' % (action_index, self.num_pursuers, self.seed, self.nrows, self.ncols, self.empty)
+        rewards_filename = 'rewards_action_%d_npursuers_%d_seed_%d_nrows_%d_ncols_%d_empty_%s_irrationalpursuer.npz' % (action_index, self.num_pursuers, self.seed, self.nrows, self.ncols, self.empty)
         if os.path.exists(transitions_filename) and os.path.exists(rewards_filename):
             return scipy.sparse.load_npz(transitions_filename), scipy.sparse.load_npz(rewards_filename)
         # print(pursuer_actions)
@@ -130,7 +130,7 @@ class PursuersVIIrrational(PursuersValueIteration):
         return transitions, rewards   
 
     def valueIteration(self):
-        policy_filename = 'policy_npursuers_%d_seed_%d_irrationalpursuer.pkl' % (self.num_pursuers, self.seed)
+        policy_filename = 'policy_npursuers_%d_seed_%d_nrows_%d_ncols_%d_empty_%s_irrationalpursuer.pkl' % (self.num_pursuers, self.seed, self.nrows, self.ncols, self.empty)
         if os.path.exists(policy_filename):
             with open(policy_filename, 'rb') as policy_file:
                 policy = pickle.load(policy_file)
