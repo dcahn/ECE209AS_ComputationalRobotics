@@ -6,13 +6,13 @@ from pursuers_bfs import PursuersBFS
 class PursuerLimitedRange:
     # Pursuer that behaves optimally when evader is within a certain spatial distance 
     # and otherwise moves at random
-    def __init__(self, num_pursuers, board, pursuer_range, seed=0, use_bfs=False):
+    def __init__(self, num_pursuers, board, pursuer_range, nrows, ncols, empty, seed=0, use_bfs=False):
         self.num_pursuers = num_pursuers
         self.board = board
         self.pursuer_range = pursuer_range
         self.use_bfs = use_bfs
         if not self.use_bfs:
-            self.VI = PursuersValueIteration(num_pursuers, board, seed)
+            self.VI = PursuersValueIteration(num_pursuers, board, seed, nrows, ncols, empty)
         else:
             self.BFS = PursuersBFS(num_pursuers, board)
 
