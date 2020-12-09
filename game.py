@@ -51,7 +51,7 @@ class Game():
 		self.vi_irrational = vi_irrational
 		self.bfs = bfs
 		if vi_irrational:
-			self.irrational_policy = PursuerLimitedRange(npursuers, self.board, pursuer_range, seed, bfs)
+			self.irrational_policy = PursuerLimitedRange(npursuers, self.board, pursuer_range, nrows, ncols, empty, seed, bfs)
 			self.VI = PursuersVIIrrational(npursuers, self.board, seed, pursuer_range, nrows, ncols, empty, bfs)
 		else:
 			if not bfs:
