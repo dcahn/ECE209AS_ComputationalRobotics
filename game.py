@@ -189,7 +189,7 @@ class Game():
 				if self.board[x][y] == 'p':
 					self.board[x][y] = '.'
 				elif self.board[x][y] == 'e':
-					self.board[x][y] = ' '
+					self.board[x][y] = '.'
 
 
 	def print(self):
